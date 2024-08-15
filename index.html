@@ -99,6 +99,18 @@
         th {
             background-color: #f2f2f2;
         }
+        .balance-warning {
+            color: red;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 15px;
+        }
+        .balance-ok {
+            color: green;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
@@ -113,6 +125,7 @@
         <button class="calculate-btn" onclick="calculateResults()">Calculate Results</button>
         <button class="clear-storage-btn" onclick="clearStorage()">Clear Saved Data</button>
         <div class="results" id="results"></div>
+        <div id="balance-warning"></div>
     </div>
 
     <script>
@@ -160,6 +173,8 @@
 
         function calculateResults() {
             const exchangeRate = 0.1667;
+            let totalBuyin = 0;
+            let totalCashout = 0;
             let results = `
                 <table>
                     <tr>
@@ -180,6 +195,9 @@
                 const profit = cashout - buyin;
                 const profitCAD = profit * exchangeRate;
 
+                totalBuyin += buyin;
+                totalCashout += cashout;
+
                 results += `
                     <tr>
                         <td>${name}</td>
@@ -195,7 +213,22 @@
 
             results += `</table>`;
             document.getElementById('results').innerHTML = results;
+
+            checkBalance(totalBuyin, totalCashout);
             savePlayers(playersData);
+        }
+
+        function checkBalance(totalBuyin, totalCashout) {
+            const balanceWarning = document.getElementById('balance-warning');
+            const difference = Math.abs(totalBuyin - totalCashout);
+
+            if (totalBuyin !== totalCashout) {
+                balanceWarning.className = 'balance-warning';
+                balanceWarning.innerHTML = `Warning: The results are not balanced! The difference is HK$${difference.toFixed(2)}.`;
+            } else {
+                balanceWarning.className = 'balance-ok';
+                balanceWarning.innerHTML = 'The results are balanced!';
+            }
         }
 
         function savePlayers(playersData = null) {
@@ -222,9 +255,13 @@
         }
 
         function clearStorage() {
-            localStorage.removeItem('playersData');
-            localStorage.removeItem('stackValue');
-            location.reload();
+            if (confirm('Are you sure you want to clear all saved data?')) {
+                localStorage.clear();
+                document.getElementById('player-container').innerHTML = '';
+                document.getElementById('results').innerHTML = '';
+                document.getElementById('balance-warning').innerHTML = '';
+                playerCount = 0;
+            }
         }
     </script>
 </body>
